@@ -7,7 +7,7 @@ export function useSpaceWeather() {
 
   useEffect(() => {
     const fetch_data = async () => {
-      const resp = await fetch("http://localhost:8000/v1/status");
+      const resp = await fetch("https://payne-22q3.onrender.com");
       const json = await resp.json();
       setData(json);
       setLoading(false);
