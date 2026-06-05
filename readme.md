@@ -1,260 +1,266 @@
-# 🌩️ PAYNE — Space Weather Intelligence Platform
+# 🚀 PAYNE — Launch Intelligence Platform
 
-> **Previsão de tempestades solares com dados de satélites NASA + Kuafu-1 (CNSA) para proteção de infraestrutura crítica global.**
+> **Inteligência climática e espacial para decisões críticas de lançamento.**
+> *O lançamento começa antes da ignição. Começa na leitura correta do risco.*
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-tsukishikawa.github.io%2Fpayne-FF7A1A?style=for-the-badge&logo=github)](https://tsukishikawa.github.io/payne)
 [![API](https://img.shields.io/badge/API-payne--22q3.onrender.com-FF9347?style=for-the-badge&logo=fastapi)](https://payne-22q3.onrender.com/docs)
-[![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)](https://python.org)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![ODS 9](https://img.shields.io/badge/ODS%209-Infraestrutura%20Resiliente-orange?style=for-the-badge)](https://sdgs.un.org/goals/goal9)
+[![FIAP GS 2026](https://img.shields.io/badge/FIAP-Global%20Solution%202026-blue?style=for-the-badge)](https://fiap.com.br)
 
 ---
 
-## 📡 O que é o PAYNE?
+## 🌟 Por que PAYNE?
 
-O PAYNE é uma plataforma B2B de monitoramento de clima espacial que transforma dados brutos de satélites em alertas acionáveis para operadores de infraestrutura crítica.
+A empresa se chama **Payne** em homenagem a **Cecilia Payne-Gaposchkin** (1900–1979). Em 1925, ela demonstrou que o Sol é composto principalmente por hidrogênio e hélio — contrariando a visão dominante da época. Sua história carrega ciência, coragem e evidência: uma jovem pesquisadora interpretou sinais invisíveis quando ninguém mais acreditava.
 
-Tempestades solares causam blackouts em redes elétricas, desviam satélites de órbita, interrompem comunicações HF e corrompem sistemas GPS. O evento Carrington de 1859, se repetido hoje, causaria **US$ 2,6 trilhões em danos**. Em 1989, uma tempestade derrubou toda a rede elétrica de Quebec em 92 segundos.
-
-O PAYNE monitora continuamente dados de **6 satélites** — incluindo o **Kuafu-1 da CNSA**, diferencial exclusivo que nenhum concorrente integra — e gera scores de risco de 0 a 100 por tipo de infraestrutura com até **72 horas de antecedência**.
+> *Cecilia Payne leu a luz das estrelas para revelar do que o Sol é feito.*
+> *A Payne lê os sinais do Sol para revelar quando ele pode colocar uma missão em risco.*
 
 ---
-# Próximos Passos
+
+## 🎯 O que é o PAYNE Launch Intelligence?
+
+Uma plataforma de apoio à decisão para operações espaciais críticas. Integra dados reais de **clima espacial** (NASA/NOAA), dados de **clima terrestre** e **perfil de missão** para gerar um único score:
+
+```
+LAUNCH WINDOW SCORE → GO | HOLD | REVIEW
+```
+
+A pergunta que o PAYNE responde é clara e operacional:
+
+> *Esta janela de lançamento é segura, eficiente e justificável do ponto de vista técnico e financeiro?*
+
+---
 
 ## 🛰️ Fontes de Dados
 
-| Satélite | Agência | Posição | Frequência | O que fornece |
-|---|---|---|---|---|
-| **DSCOVR** | NASA/NOAA | L1 — 1,5M km do sol | 1 min | Velocidade e densidade do vento solar, campo Bz |
-| **ACE** | NASA | L1 | 1 min | Composição do vento solar, partículas energéticas |
-| **GOES-R** | NOAA | Geossíncrono | 1 min | Fluxo de raios-X — classifica fulgurações A/B/C/M/X |
-| **SDO / HMI** | NASA | Geossíncrono | 45 seg | Magnetograma solar, imagens UV |
-| **SOHO / LASCO** | ESA/NASA | L1 | 30 min | Coronógrafo — detecta CMEs saindo do sol |
-| **Kuafu-1 (ASO-S)** 🇨🇳 | **CNSA** | Polar solar-síncrona (720km) | 5 min | Hard X-ray, Lyman-alpha, campo magnético solar |
-
-> **Por que o Kuafu-1?** Lançado em outubro de 2022 pela China, monitora três fenômenos simultaneamente com instrumentos que nenhum satélite ocidental cobre de forma integrada. Isso garante detecção de CMEs com **12–24 horas a mais** de antecedência em relação à concorrência.
+| Fonte | O que fornece | Status |
+|---|---|---|
+| **NOAA SWPC** | Kp, alertas, escalas de clima espacial | ✅ Real (conectado) |
+| **DSCOVR / ACE (NASA)** | Vento solar, campo Bz, Bt em tempo real | ✅ Real (conectado) |
+| **GOES-R** | Fluxo de raios-X — classifica fulgurações A/B/C/M/X | ✅ Real (conectado) |
+| **Clima terrestre** | Vento, raios, nuvens, visibilidade no launch site | ⚠️ Simulado no MVP |
+| **Kuafu-1 (CNSA)** | Hard X-ray, Lyman-alpha — +12–24h de antecedência | 🗺️ Roadmap |
+| **NASA DONKI** | Histórico de CMEs e eventos solares | 🗺️ Roadmap |
+| **METAR / TAF** | Meteorologia real no local de lançamento | 🗺️ Roadmap |
 
 ---
 
 ## 🏗️ Arquitetura
 
 ```
-☀️ Satélites (NASA · CNSA · NOAA · ESA)
-         │
-         ▼
-⚙️  Apache Airflow ── 6 DAGs (1 min → 1 semana)
-         │
-         ▼
-🗄️  PostgreSQL + TimescaleDB ── séries temporais de alta frequência
-         │                    ── PostGIS para dados geoespaciais
-         │
-         ▼
-🧠  Python — ML Pipeline
-    ├── LSTM ──────── previsão de Kp (72h)
-    ├── XGBoost ───── previsão de Dst (24h)
-    ├── CNN ────────── detecção de CME em imagens do coronógrafo
-    └── Classificador ─ score de risco 0–100 por tipo de ativo
-         │
-         ▼
-🏛️  Oracle DW ── histórico consolidado, relatórios regulatórios
-         │
-         ▼
-    ┌────────────┬──────────────┐
-    │  FastAPI   │    KNIME     │
-    │  REST API  │  Dashboard   │
-    └────────────┴──────────────┘
-         │
-         ▼
-⚛️  React Dashboard ── dados em tempo real, previsão 72h, scores de risco
+☀️  Satélites (DSCOVR · GOES-R · ACE · SDO · Kuafu-1)
+            │
+            ▼
+⚙️   Python — ingestão e padronização (requests / pandas)
+            │
+            ▼
+📋   Modelo canônico
+     ├── mission_profile        (provider, site, orbit, sensitivity)
+     ├── launch_site_weather    (vento, raios, visibilidade — simulado MVP)
+     ├── space_weather_status   (Kp, Bz, X-Ray — dados reais)
+     ├── launch_window_score    (score, recommendation, reasons)
+     └── recommendation_log    (timestamp, level, reason, is_simulated)
+            │
+            ▼
+🔌   FastAPI — API REST com documentação automática (/docs)
+     ├── GET /v1/launch/window-score   ← endpoint principal
+     ├── GET /v1/mission/profile
+     ├── GET /v1/launch/sites
+     ├── GET /v1/status                ← clima espacial em tempo real
+     └── GET /v1/forecast
+            │
+            ▼
+    ┌───────────────┬─────────────────┐
+    │  React + Vite │  KNIME (roadmap) │
+    │  Dashboard    │  Relatórios PDF  │
+    └───────────────┴─────────────────┘
 ```
 
 ---
 
-## 🧠 Modelos de Machine Learning
+## 🧮 Como funciona o Launch Window Score
 
-### LSTM — Previsão de Kp (72h)
-- **Features:** velocidade do vento solar, Bz, pressão dinâmica, Kp histórico (lag 24h), fase rotação solar (27 dias)
-- **Target:** Kp hora a hora para as próximas 72h
-- **Performance:** RMSE ~0.7 (baseline NOAA: ~1.2)
+O score combina dois componentes com pesos iguais:
 
-### XGBoost — Previsão de Dst (24h)
-- **Features:** Kp previsto, velocidade CME, Bz negativo acumulado
-- **Target:** valor Dst nas próximas 24h (abaixo de -100 nT = tempestade severa)
-- **Performance:** R² ~0.78 em eventos históricos
+```
+Score Global = (Clima Espacial × 50%) + (Clima Terrestre × 50%)
+               ajustado pela Sensibilidade da Missão (0.8x – 1.6x)
+```
 
-### CNN — Detecção de CME
-- **Input:** sequência de 6 frames do coronógrafo LASCO + imagens Lyman-alpha Kuafu-1
-- **Target:** CME detectada + velocidade + direção + probabilidade de impacto
-- **Performance:** Precision 0.84 · Recall 0.79
-- **Diferencial:** 12–24h de antecedência adicional vs modelos de vento solar
+**Componente de Clima Espacial** (dados reais):
+- Base 100 pontos, com penalidades por Kp elevado, Bz negativo, fulgurações M/X e vento solar alto
 
-### Classificador de Risco por Ativo
-- **Input:** Kp e Dst previstos + tipo de ativo + latitude
-- **Output:** score 0–100 + nível (Normal/Elevado/Alerta/Crítico) + recomendação de ação
-- **Performance:** Acurácia ~91% em eventos catalogados
+**Componente de Clima Terrestre** (simulado no MVP):
+- Score por site baseado em critérios de launch commit criteria reais (45th Weather Squadron)
+
+**Sensibilidade da missão:**
+| Nível | Multiplicador | Exemplo |
+|---|---|---|
+| LOW | 0.8× | Cargo não-crítico |
+| MEDIUM | 1.0× | Smallsat padrão |
+| HIGH | 1.3× | Starlink / LEO denso |
+| CRITICAL | 1.6× | GEO / carga humana |
+
+**Recomendação:**
+- `GO` → Score ≥ 65
+- `HOLD` → Score 40–64
+- `REVIEW` → Score < 40
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📡 API — Endpoint principal
+
+```bash
+GET /v1/launch/window-score?site=alcantara&mission=leo-small-sat
+```
+
+**Exemplo de resposta:**
+
+```json
+{
+  "mission_id": "PAYNE-DEMO-001",
+  "recommendation": "GO",
+  "global_score": 74,
+  "space_weather_score": 68,
+  "terrestrial_weather_score": 78,
+  "main_reasons": ["Condições nominais — todos os parâmetros dentro dos limites"],
+  "action": "Prosseguir com countdown — monitoramento contínuo ativo.",
+  "methodology": {
+    "score_weights": "space_weather=50% + terrestrial=50%",
+    "human_in_the_loop": true,
+    "version": "1.1.0-mvp"
+  },
+  "governance": {
+    "disclaimer": "Score de apoio à decisão. Não substitui autoridade operacional de lançamento."
+  }
+}
+```
+
+**Locais disponíveis:** `alcantara` · `canaveral` · `kourou`
+
+**Missões disponíveis:** `leo-small-sat` · `starlink-batch` · `geo-telecom`
+
+---
+
+## 🖥️ Dashboard — 5 abas
+
+| Aba | O que mostra |
+|---|---|
+| **Launch Window** | Score GO/HOLD/REVIEW ao vivo, breakdown de componentes, clima terrestre, feed de eventos |
+| **Mission Risk** | Risco por fase da missão (pré-lançamento → recuperação), custo de adiamento |
+| **Space Weather** | Gauge Kp, Bz, vento solar, escala de impacto por faixa de Kp, histórico de falhas |
+| **API Demo** | Chamada interativa ao endpoint `/v1/launch/window-score` com resposta JSON real |
+| **Methodology** | Origem da marca (Cecilia Payne), metodologia do score, governança e limitações |
+
+---
+
+## 👥 Público-Alvo
+
+| Segmento | Exemplos | Dor principal |
+|---|---|---|
+| **Launch providers** | SpaceX, Rocket Lab, ULA, Firefly | Janela de lançamento com menor risco e menor custo de adiamento |
+| **Operadores de satélite** | Starlink, OneWeb, Planet, Iridium | Proteger carga útil na órbita inicial |
+| **Spaceports / Ranges** | Alcântara, Canaveral, Kourou | Segurança, critérios e comunicação com operadores |
+| **Seguradoras espaciais** | Lloyd's, Munich Re, Swiss Re | Precificar risco de missão e lançamento |
+| **Governo / Defesa** | Agências espaciais, FAB, ESA | Governança de risco e resiliência |
+
+---
+
+## ⚡ Casos históricos documentados
+
+| Evento | O que aconteceu |
+|---|---|
+| **Apollo 12 (1969)** | Missão atingida por raios após decolagem. Sobreviveu. Gerou os launch commit criteria para raios. |
+| **Atlas-Centaur AC-67 (1987)** | Descarga elétrica em condição adversa. Missão perdida. Reforçou critérios meteorológicos. |
+| **Starlink Batch (2022)** | Tempestade geomagnética G1 elevou arrasto atmosférico. 40 satélites perdidos em órbita inicial. |
+
+---
+
+## 📁 Estrutura do repositório
 
 ```
 payne/
-├── frontend/                  # React + Vite
-│   ├── src/
-│   │   ├── App.jsx            # Dashboard principal
-│   │   ├── hooks/
-│   │   │   └── useSpaceWeather.js  # Hook de dados em tempo real
-│   │   └── App.css
-│   ├── vite.config.js
-│   └── package.json
-│
+├── frontend/
+│   └── src/
+│       ├── App.jsx                    ← Dashboard Launch Intelligence
+│       └── hooks/
+│           └── useSpaceWeather.js     ← Hook de dados em tempo real
 └── backend/
-    ├── src/
-    │   ├── main.py            # FastAPI — endpoints da API
-    │   ├── nasa_dscovr.py     # Cliente DSCOVR + campo magnético
-    │   ├── noaa.py            # Índice Kp + previsão
-    │   ├── noaa_goes.py       # Fluxo de raios-X GOES-R
-    │   ├── celestrak.py       # Satélites e detritos orbitais
-    │   └── requirements.txt
-    ├── dags/
-    │   ├── dag_realtime_ingest.py
-    │   ├── dag_sdo_kuafu_ingest.py
-    │   ├── dag_kp_predict.py
-    │   ├── dag_model_retrain.py
-    │   ├── dag_sync_oracle.py
-    │   └── dag_client_reports.py
-    └── sql/
-        ├── schema.sql         # PostgreSQL + TimescaleDB
-        └── oracle_dw.sql      # Oracle Data Warehouse
+    └── src/
+        ├── main.py                    ← FastAPI com endpoints de Launch Intelligence
+        ├── nasa_dscovr.py             ← DSCOVR + campo magnético (real)
+        ├── noaa.py                    ← Kp + previsão (real)
+        ├── noaa_goes.py               ← Raios-X GOES-R (real)
+        └── requirements.txt
 ```
 
 ---
 
 ## 🚀 Como rodar localmente
 
-### Pré-requisitos
-- Node.js 20+
-- Python 3.11+
-- Git
-
-### Frontend
-
 ```bash
-cd frontend
-npm install
-npm run dev
-# Acessa http://localhost:5173
-```
-
-### Backend
-
-```bash
+# Backend
 cd backend/src
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
-# API disponível em http://localhost:8000
-# Documentação em http://localhost:8000/docs
-```
+# → http://localhost:8000/docs
 
-### Variáveis de ambiente
-
-Cria um arquivo `.env` em `backend/src/`:
-
-```env
-# Não é necessário chave para as APIs NASA/NOAA — são abertas
-# Adicionar quando integrar Kuafu-1 (NSDC China):
-NSDC_USERNAME=seu_usuario
-NSDC_PASSWORD=sua_senha
-
-# Banco de dados (produção):
-DATABASE_URL=postgresql://user:pass@localhost:5432/payne
-ORACLE_DSN=localhost:1521/orcl
+# Frontend
+cd frontend
+npm install
+npm run dev
+# → http://localhost:5173
 ```
 
 ---
 
-## 🔌 API
+## ⚖️ Governança
 
-Base URL: `https://payne-22q3.onrender.com`
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `GET` | `/v1/status` | Dados em tempo real de todas as fontes |
-| `GET` | `/v1/forecast` | Previsão de Kp para as próximas 24h |
-| `GET` | `/v1/risk/{asset_type}` | Score de risco por tipo de ativo |
-
-**Tipos de ativo aceitos:** `utility` · `satellite` · `aviation` · `gps` · `submarine`
-
-**Exemplo de request:**
-```bash
-curl https://payne-22q3.onrender.com/v1/risk/utility
-```
-
-**Exemplo de response:**
-```json
-{
-  "asset_type": "utility",
-  "kp_current": 3.67,
-  "score": 34,
-  "level": "ELEVADO",
-  "recommendation": "Monitorar transformadores de alta tensão"
-}
-```
-
-> Documentação completa e interativa: **[payne-22q3.onrender.com/docs](https://payne-22q3.onrender.com/docs)**
+| Princípio | Aplicação |
+|---|---|
+| **Fonte oficial** | NOAA/NASA para clima espacial — sempre referenciadas |
+| **Rastreabilidade** | Todo score exibe fonte, timestamp e versão da regra |
+| **Explicabilidade** | O sistema mostra por que recomendou GO, HOLD ou REVIEW |
+| **Human-in-the-loop** | A decisão de lançamento é operacional e humana |
+| **Dados simulados** | Identificados claramente na API e no dashboard |
+| **Limitação clara** | Não substitui NOAA, NASA, Space Force, FAA ou reguladores |
 
 ---
 
-## 💰 Modelo de Negócio
+## 🗺️ Roadmap
 
-| Plano | Preço | O que inclui |
-|---|---|---|
-| **Starter** | $8k/ano | API 1.000 req/hora · alertas por e-mail · previsão 24h · 1 tipo de ativo |
-| **Pro** | $50k/ano | API ilimitada · webhooks em tempo real · previsão 72h · 5 ativos · dashboard KNIME |
-| **Enterprise** | Sob consulta | SLA 99.9% · dados brutos · modelo dedicado · relatório regulatório · suporte 24/7 |
-
-**Mercado-alvo:** utilities de energia, operadores de satélites, companhias aéreas, seguradoras, governos.
-
-**ARR projetado (base mínima):** 50 Starter + 20 Pro + 3 Enterprise = **$2,3M/ano**
-
----
-
-## 📊 Como interpretar o Índice Kp
-
-| Kp | Nível | Impacto |
-|---|---|---|
-| 0 – 2 | Normal | Nenhum |
-| 3 – 4 | Elevado | Aurora no Canadá/Escandinávia |
-| 5 – 6 | Alerta | GPS instável, rádio HF falha |
-| 7 – 8 | Crítico | Redes elétricas em risco, satélites manobram |
-| 9 | Extremo | Blackouts, satélites fora de órbita |
+- [x] Dashboard com Launch Window Score (GO/HOLD/REVIEW)
+- [x] Dados reais NOAA/NASA conectados (Kp, Bz, X-Ray)
+- [x] API FastAPI com endpoint `/v1/launch/window-score`
+- [x] Aba Methodology com governança e limitações
+- [x] Deploy GitHub Pages + Render
+- [ ] Clima terrestre real via METAR/TAF
+- [ ] Integração Kuafu-1 (CNSA) — +12–24h de antecedência
+- [ ] NASA DONKI — histórico de CMEs
+- [ ] PostgreSQL + TimescaleDB em produção
+- [ ] Modelo ML para previsão calibrada com histórico
 
 ---
 
-## 🎯 ODS Alinhado
+## 🎯 ODS 9 — Indústria, Inovação e Infraestrutura
 
-**ODS 9 — Indústria, Inovação e Infraestrutura**
-
-O PAYNE fortalece a resiliência de infraestrutura crítica global usando tecnologia espacial para antecipar eventos que causam bilhões em danos. Clima espacial é uma das maiores ameaças não-endereçadas à infraestrutura moderna — e a solução vem diretamente de dados orbitais.
+O PAYNE fortalece a resiliência de infraestrutura espacial crítica usando dados orbitais para antecipar riscos que causam perdas de missão, blackouts e danos financeiros significativos. Cada lançamento mais seguro é infraestrutura mais confiável para o planeta.
 
 ---
 
 ## 👩‍💻 Desenvolvido por
 
-**RM570351  - Luana Ramos Rabelo**  
-**RM 573538 - Lucas Luna Pimentel**  
-**RM 572886 - Mariana Ishikawa Mota**  
-FIAP · Turma 1TSCPF  
-Global Solution 2026 — Indústria Espacial  
-
----
-
-## 📄 Licença
-
-MIT © 2026 PAYNE
+RM570351 - Luana Ramos Rabelo  
+RM 573538 - Lucas Luna Pimentel  
+RM 572886 - Mariana Ishikawa Mota  
+FIAP · Turma 1TSCPF
+Global Solution 2026 — Indústria Espacial · Parceiro: Pacto Global da ONU
 
 ---
 
 <div align="center">
-  <sub>Dados: NASA DSCOVR · GOES-R · SDO · SOHO · <b>Kuafu-1 CNSA</b> · NOAA SWPC</sub>
+  <sub>Dados: NASA DSCOVR · GOES-R · NOAA SWPC · <b>Kuafu-1 CNSA (roadmap)</b></sub><br/>
+  <sub>Homenagem a Cecilia Payne-Gaposchkin (1900–1979)</sub>
 </div>
