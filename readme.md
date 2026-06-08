@@ -104,9 +104,9 @@ Score Global = (Clima Espacial × 50%) + (Clima Terrestre × 50%)
 | CRITICAL | 1.6× | GEO / carga humana |
 
 **Recomendação:**
-- `GO` → Score ≥ 65
-- `HOLD` → Score 40–64
-- `REVIEW` → Score < 40
+GO → Score ≥ 65
+REVIEW → Score 40–64
+HOLD → Score < 40
 
 ---
 
