@@ -1,6 +1,6 @@
 # PAYNE Launch Intelligence — Backend FastAPI
 # Inteligência climática e espacial para decisões críticas de lançamento
-# FIAP Global Solution 2026 | Space Connect
+# FIAP Global Solution 1.2026 | Space Connect
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
